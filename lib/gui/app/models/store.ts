@@ -73,6 +73,7 @@ const DEFAULT_STATE = Immutable.fromJS({
 		speed: null,
 		totalSpeed: null,
 	},
+	lastAverageFlashingSpeed: null,
 });
 
 /**
@@ -263,7 +264,11 @@ function storeReducer(
 				});
 			}
 
-			return state.set('flashState', Immutable.fromJS(action.data));
+			let ret = state.set('flashState', Immutable.fromJS(action.data));
+			if (action.data.flashing) {
+				ret = ret.set('lastAverageFlashingSpeed', action.data.averageSpeed);
+			}
+			return ret;
 		}
 
 		case Actions.RESET_FLASH_STATE: {
@@ -326,9 +331,19 @@ function storeReducer(
 				});
 			}
 
+			if (action.data.results) {
+				action.data.results.averageFlashingSpeed = state.get(
+					'lastAverageFlashingSpeed',
+				);
+			}
+
 			return state
 				.set('isFlashing', false)
 				.set('flashResults', Immutable.fromJS(action.data))
+				.set(
+					'lastAverageFlashingSpeed',
+					DEFAULT_STATE.get('lastAverageFlashingSpeed'),
+				)
 				.set('flashState', DEFAULT_STATE.get('flashState'));
 		}
 
